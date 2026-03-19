@@ -417,7 +417,6 @@ const MapView: React.FC = () => {
         focusedSubFolder,
 
         infraVisibility,
-        toggleInfraVisibility,
     } = useStore()
 
     const tile = TILES[mapLayer]

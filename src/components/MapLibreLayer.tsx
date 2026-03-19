@@ -12,15 +12,15 @@ const MapLibreLayer: React.FC<MapLibreLayerProps> = ({ style, opacity = 1 }) => 
     const map = useMap()
 
     useEffect(() => {
-        // @ts-ignore - maplibreGL is added by the plugin
+        // @ts-ignore - maplibreGL is added by the plugin at runtime
         if (!L.maplibreGL) return
 
-        // @ts-ignore
-        const glLayer = L.maplibreGL({
+        // @ts-ignore - @maplibre/maplibre-gl-leaflet types don't include opacity in LeafletMaplibreGLOptions
+        const glLayer = (L as any).maplibreGL({
             style: style,
             opacity: opacity,
             noWrap: true,
-            interactive: false // Keep it background
+            interactive: false
         }).addTo(map)
 
         return () => {
