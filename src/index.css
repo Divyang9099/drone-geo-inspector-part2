@@ -1,0 +1,2656 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import "tailwindcss";
+
+/* ============================================================
+   BASE & CSS VARIABLES
+   ============================================================ */
+:root {
+  /* Premium Studio Dark Theme (Zinc/Slate base) */
+  --bg-base: #000000;
+  --bg-surface: #09090b;
+  --bg-elevated: #18181b;
+  --bg-card: #27272a;
+  --bg-card-hover: #3f3f46;
+  --bg-card-selected: #18181b;
+
+  --border: #27272a;
+  --border-bright: #3f3f46;
+
+  /* Sophisticated Accents */
+  --accent-blue: #0ea5e9;
+  --accent-blue-glow: rgba(14, 165, 233, 0.25);
+  --accent-orange: #f59e0b;
+  --accent-orange-glow: rgba(245, 158, 11, 0.25);
+  --accent-purple: #8b5cf6;
+  --accent-green: #10b981;
+  --accent-red: #ef4444;
+
+  --text-primary: #f4f4f5;
+  --text-secondary: #a1a1aa;
+  --text-muted: #71717a;
+  --text-accent: #38bdf8;
+
+  --topbar-height: 64px;
+  --sidebar-width: 340px;
+
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+
+  --shadow-card: 0 4px 16px rgba(0, 0, 0, 0.6);
+  --shadow-elevated: 0 10px 40px rgba(0, 0, 0, 0.8);
+  --shadow-glow-blue: 0 0 20px rgba(14, 165, 233, 0.15);
+
+  --transition: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ============================================================
+   RESET
+   ============================================================ */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--bg-base);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+}
+
+
+
+/* ============================================================
+   APP SHELL
+   ============================================================ */
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg-base);
+}
+
+.app-body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.sidebar-wrapper {
+  width: var(--sidebar-width);
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-surface);
+  border-right: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.map-region {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  /* prevents map scroll from leaking to page */
+  min-width: 0;
+  min-height: 0;
+}
+
+/* ============================================================
+   TOPBAR
+   ============================================================ */
+.topbar {
+  height: var(--topbar-height);
+  background: var(--bg-base);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 0 24px;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 100;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-shrink: 0;
+}
+
+.topbar-center {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.action-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* Brand */
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brand-logo {
+  height: 22px;
+  width: auto;
+  filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.2));
+}
+
+.brand-name {
+  font-size: 1.05rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+/* Upload buttons (Premium Studio Glass) */
+.btn-upload, .btn-kml-upload {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 14px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition);
+  white-space: nowrap;
+  letter-spacing: 0.01em;
+  backdrop-filter: blur(8px);
+}
+
+.btn-upload:hover, .btn-kml-upload:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.btn-upload:active, .btn-kml-upload:active {
+  transform: scale(0.98);
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* Filter buttons */
+.filter-group {
+  display: flex;
+  gap: 4px;
+  background: var(--bg-base);
+  border: 1px solid var(--border);
+  padding: 4px;
+  border-radius: var(--radius-sm);
+}
+
+.filter-btn {
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition);
+  white-space: nowrap;
+}
+
+.filter-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-primary);
+}
+
+.filter-btn.active {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+  box-shadow: none;
+}
+
+/* Stats chips */
+.stats-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.stat-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: var(--radius-sm);
+  padding: 5px 12px;
+  min-width: 65px;
+  transition: background var(--transition);
+}
+
+.stat-chip:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.stat-chip.warn {
+  border-color: rgba(245, 158, 11, 0.2);
+  background: rgba(245, 158, 11, 0.05);
+}
+
+.stat-label {
+  font-size: 0.6rem;
+  color: var(--text-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 2px;
+}
+
+.stat-value {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: 0.02em;
+}
+
+/* Ghost button */
+.btn-ghost {
+  padding: 6px 12px;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  border-radius: var(--radius-sm);
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition: all var(--transition);
+  white-space: nowrap;
+}
+
+.btn-ghost:hover {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  border-color: var(--border-bright);
+}
+
+.btn-ghost.active {
+  background: rgba(239, 68, 68, 0.12);
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #fca5a5;
+}
+
+/* Danger button */
+.btn-danger {
+  padding: 6px 12px;
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  color: #fca5a5;
+  border-radius: var(--radius-sm);
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition: all var(--transition);
+  white-space: nowrap;
+}
+
+.btn-danger:hover {
+  background: rgba(239, 68, 68, 0.22);
+  border-color: rgba(239, 68, 68, 0.6);
+  transform: translateY(-1px);
+}
+
+/* Progress info */
+.progress-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+}
+
+/* ============================================================
+   SIDEBAR
+   ============================================================ */
+.sidebar {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.sidebar-header {
+  padding: 14px 16px 10px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.sidebar-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sidebar-count {
+  background: var(--accent-blue);
+  color: white;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 1px 7px;
+  border-radius: 999px;
+}
+
+.sidebar-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sidebar-body::-webkit-scrollbar {
+  width: 4px;
+}
+
+.sidebar-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebar-body::-webkit-scrollbar-thumb {
+  background: var(--border-bright);
+  border-radius: 4px;
+}
+
+/* Empty state */
+.sidebar-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 48px 20px;
+  text-align: center;
+  color: var(--text-muted);
+  flex: 1;
+}
+
+.empty-icon {
+  font-size: 3rem;
+  filter: grayscale(0.3);
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+.empty-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.empty-sub {
+  font-size: 0.78rem;
+  line-height: 1.5;
+  max-width: 220px;
+}
+
+/* ============================================================
+   IMAGE CARD
+   ============================================================ */
+.image-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  cursor: pointer;
+  transition: all var(--transition);
+  display: flex;
+  flex-direction: column;
+}
+
+.image-card:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--border-bright);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-card);
+}
+
+.image-card.selected {
+  background: var(--bg-card-selected);
+  border-color: var(--accent-blue);
+  box-shadow: 0 0 0 1px var(--accent-blue), var(--shadow-glow-blue);
+}
+
+.image-card-thumb {
+  position: relative;
+  width: 100%;
+  height: 120px;
+  background: var(--bg-elevated);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.image-card-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+.image-card:hover .image-card-thumb img {
+  transform: scale(1.04);
+}
+
+.thumb-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  color: var(--text-muted);
+}
+
+/* Type badge */
+.type-badge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  font-size: 0.65rem;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 999px;
+  letter-spacing: 0.03em;
+}
+
+.badge-thermal {
+  background: rgba(249, 115, 22, 0.85);
+  color: white;
+  backdrop-filter: blur(4px);
+}
+
+.badge-visual {
+  background: rgba(59, 130, 246, 0.85);
+  color: white;
+  backdrop-filter: blur(4px);
+}
+
+.badge-unknown {
+  background: rgba(168, 85, 247, 0.85);
+  color: white;
+  backdrop-filter: blur(4px);
+}
+
+/* Card info */
+.image-card-info {
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.image-name {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.image-coords {
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  font-family: 'Courier New', monospace;
+}
+
+.image-meta-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.meta-item {
+  font-size: 0.67rem;
+  color: var(--text-muted);
+}
+
+/* ============================================================
+   STATS PANEL
+   ============================================================ */
+.stats-panel {
+  padding: 12px 14px;
+  border-top: 1px solid var(--border);
+  background: var(--bg-elevated);
+  flex-shrink: 0;
+}
+
+.stats-panel-title {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 8px;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5px;
+}
+
+.stats-item {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 5px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+}
+
+.stats-item.thermal {
+  border-color: rgba(249, 115, 22, 0.3);
+}
+
+.stats-item.visual {
+  border-color: rgba(59, 130, 246, 0.3);
+}
+
+.stats-item.unknown {
+  border-color: rgba(168, 85, 247, 0.3);
+}
+
+.stats-item.warn {
+  border-color: rgba(234, 179, 8, 0.3);
+  background: rgba(234, 179, 8, 0.05);
+}
+
+.stats-item.path {
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+.si-label {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+}
+
+.si-val {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.capitalize {
+  text-transform: capitalize;
+}
+
+/* ============================================================
+   MAP
+   ============================================================ */
+.map-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  /* confine everything to map area */
+  touch-action: none;
+  /* prevent page scroll from map touch gestures */
+}
+
+.map-container {
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+  /* same for leaflet container */
+}
+
+/* Leaflet dark overrides */
+.leaflet-container {
+  background: #0d1520 !important;
+  font-family: inherit;
+  touch-action: none !important;
+  /* prevent scroll leaking to body */
+  overflow: hidden !important;
+}
+
+.leaflet-tile {
+  filter: brightness(0.85) saturate(0.9);
+}
+
+.leaflet-control-zoom {
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius-sm) !important;
+  overflow: hidden;
+}
+
+.leaflet-control-zoom a {
+  background: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
+  border-bottom: 1px solid var(--border) !important;
+  width: 30px !important;
+  height: 30px !important;
+  line-height: 30px !important;
+  font-size: 1rem !important;
+  transition: background var(--transition);
+}
+
+.leaflet-control-zoom a:hover {
+  background: var(--bg-elevated) !important;
+}
+
+.leaflet-control-attribution {
+  background: rgba(10, 13, 20, 0.7) !important;
+  backdrop-filter: blur(4px);
+  color: var(--text-muted) !important;
+  font-size: 0.65rem !important;
+}
+
+.leaflet-control-attribution a {
+  color: var(--text-accent) !important;
+}
+
+/* Cluster styles */
+.marker-cluster-small,
+.marker-cluster-medium,
+.marker-cluster-large {
+  background: rgba(59, 130, 246, 0.15) !important;
+  border: 2px solid rgba(59, 130, 246, 0.5) !important;
+}
+
+.marker-cluster-small div,
+.marker-cluster-medium div,
+.marker-cluster-large div {
+  background: rgba(59, 130, 246, 0.8) !important;
+  color: white !important;
+  font-weight: 700 !important;
+  font-size: 0.8rem !important;
+}
+
+/* Custom Popup */
+.custom-popup .leaflet-popup-content-wrapper {
+  background: var(--bg-elevated) !important;
+  border: 1px solid var(--border-bright) !important;
+  border-radius: var(--radius-md) !important;
+  color: var(--text-primary) !important;
+  box-shadow: var(--shadow-elevated) !important;
+  padding: 0 !important;
+  overflow: hidden;
+  min-width: 240px;
+}
+
+.custom-popup .leaflet-popup-tip {
+  background: var(--bg-elevated) !important;
+}
+
+.custom-popup .leaflet-popup-close-button {
+  color: var(--text-secondary) !important;
+  font-size: 16px !important;
+  top: 6px !important;
+  right: 8px !important;
+}
+
+.popup-inner {
+  display: flex;
+  flex-direction: column;
+}
+
+.popup-img {
+  width: 100%;
+  height: 140px;
+  object-fit: cover;
+  display: block;
+}
+
+.popup-body {
+  padding: 10px 12px;
+}
+
+.popup-name {
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--text-primary);
+  word-break: break-all;
+}
+
+.popup-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.popup-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 0.72rem;
+}
+
+.popup-label {
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.popup-val {
+  color: var(--text-primary);
+  font-family: 'Courier New', monospace;
+  text-align: right;
+  word-break: break-all;
+}
+
+/* Map overlay (empty state) */
+.map-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(10, 13, 20, 0.8);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  pointer-events: none;
+}
+
+.map-overlay-content {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.map-overlay-icon {
+  font-size: 4rem;
+  animation: float 3s ease-in-out infinite;
+}
+
+.map-overlay-content h3 {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.map-overlay-content p {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  max-width: 260px;
+}
+
+/* ============================================================
+   SPINNER
+   ============================================================ */
+.spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(59, 130, 246, 0.3);
+  border-top-color: var(--accent-blue);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+.spinner.large {
+  width: 36px;
+  height: 36px;
+  border-width: 3px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ============================================================
+   SCROLLBAR GLOBAL
+   ============================================================ */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-bright) transparent;
+}
+
+/* ============================================================
+   APP CSS
+   ============================================================ */
+
+/* ============================================================
+   POPUP ENHANCEMENTS
+   ============================================================ */
+.popup-thumb-wrap {
+  position: relative;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.popup-thumb-wrap:hover .popup-thumb-overlay {
+  opacity: 1;
+}
+
+.popup-thumb-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.popup-thumb-icon {
+  color: white;
+  font-size: 0.8rem;
+  font-weight: 600;
+  background: rgba(59, 130, 246, 0.85);
+  padding: 5px 10px;
+  border-radius: 6px;
+  backdrop-filter: blur(4px);
+}
+
+.popup-no-thumb {
+  width: 100%;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-card);
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+.popup-open-btn {
+  width: 100%;
+  margin-top: 10px;
+  padding: 7px 0;
+  background: linear-gradient(135deg, #2563eb, #7c3aed);
+  color: white;
+  border: none;
+  border-radius: 7px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  letter-spacing: 0.02em;
+}
+
+.popup-open-btn:hover {
+  filter: brightness(1.15);
+  transform: translateY(-1px);
+}
+
+/* ============================================================
+   CARD THUMBNAIL HOVER OVERLAY
+   ============================================================ */
+.card-thumb-hover {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: all 0.25s ease;
+  cursor: pointer;
+}
+
+.image-card-thumb:hover .card-thumb-hover {
+  opacity: 1;
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.card-zoom-icon {
+  font-size: 1.4rem;
+  background: rgba(59, 130, 246, 0.9);
+  padding: 6px 10px;
+  border-radius: 50%;
+  backdrop-filter: blur(4px);
+  transition: transform 0.2s ease;
+}
+
+.card-thumb-hover:hover .card-zoom-icon {
+  transform: scale(1.15);
+}
+
+/* ============================================================
+   SATELLITE / LAYER TOGGLE (outside MapContainer, inside .map-wrapper)
+   ============================================================ */
+.map-layer-toggle {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 2000;
+  /* above all Leaflet controls (max ~1000) */
+  display: flex;
+  background: rgba(8, 12, 22, 0.88);
+  border: 1px solid var(--border-bright);
+  border-radius: 10px;
+  overflow: hidden;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+}
+
+.layer-btn {
+  padding: 7px 14px;
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  letter-spacing: 0.02em;
+}
+
+.layer-btn+.layer-btn {
+  border-left: 1px solid var(--border);
+}
+
+.layer-btn:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-primary);
+}
+
+.layer-btn.active {
+  background: var(--accent-blue);
+  color: white;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.15);
+}
+
+/* ============================================================
+   FULLSCREEN LIGHTBOX
+   ============================================================ */
+@keyframes lb-fadein {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes lb-slidein {
+  from {
+    opacity: 0;
+    transform: scale(0.93) translateY(16px);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.lightbox-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(0, 0, 0, 0.88);
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: lb-fadein 0.2s ease;
+  padding: 16px;
+}
+
+.lightbox-panel {
+  width: 100%;
+  max-width: 900px;
+  max-height: 92vh;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-bright);
+  border-radius: 16px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.8);
+  animation: lb-slidein 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Header */
+.lightbox-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-surface);
+  flex-shrink: 0;
+  gap: 12px;
+}
+
+.lightbox-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.lightbox-filename {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.lightbox-type-badge {
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+.type-thermal {
+  background: rgba(249, 115, 22, 0.85);
+  color: white;
+}
+
+.type-visual {
+  background: rgba(59, 130, 246, 0.85);
+  color: white;
+}
+
+.type-unknown {
+  background: rgba(168, 85, 247, 0.85);
+  color: white;
+}
+
+.lightbox-header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.lightbox-counter {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.lightbox-close {
+  width: 30px;
+  height: 30px;
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #fca5a5;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.18s ease;
+}
+
+.lightbox-close:hover {
+  background: rgba(239, 68, 68, 0.28);
+  transform: scale(1.08);
+}
+
+/* Image area */
+.lightbox-image-area {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #050810;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.lightbox-img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  display: block;
+  animation: lb-slidein 0.25s ease;
+}
+
+.lightbox-image-area.lb-zoomed {
+  cursor: grab;
+}
+
+.lightbox-image-area.lb-zoomed:active {
+  cursor: grabbing;
+}
+
+.lightbox-no-img {
+  color: var(--text-muted);
+  font-size: 1rem;
+  text-align: center;
+  padding: 60px;
+}
+
+/* ── Floating zoom controls (bottom-right of image area) ── */
+.lb-zoom-controls {
+  position: absolute;
+  bottom: 14px;
+  right: 14px;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  background: rgba(8, 12, 22, 0.82);
+  border: 1px solid var(--border-bright);
+  border-radius: 10px;
+  padding: 4px 6px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+}
+
+.lb-zoom-btn {
+  width: 28px;
+  height: 28px;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 7px;
+  color: white;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s ease, border-color 0.15s ease;
+  line-height: 1;
+}
+
+.lb-zoom-btn:hover {
+  background: rgba(59, 130, 246, 0.35);
+  border-color: rgba(59, 130, 246, 0.6);
+}
+
+.lb-zoom-reset {
+  min-width: 46px;
+  height: 28px;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 7px;
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 0.7rem;
+  font-weight: 700;
+  font-family: 'Courier New', monospace;
+  cursor: pointer;
+  padding: 0 6px;
+  transition: background 0.15s ease, color 0.15s ease;
+  letter-spacing: 0.02em;
+}
+
+.lb-zoom-reset:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: white;
+}
+
+
+/* Nav buttons */
+.lightbox-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+  width: 44px;
+  height: 64px;
+  background: rgba(10, 13, 20, 0.7);
+  border: 1px solid var(--border-bright);
+  color: white;
+  font-size: 2rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.18s ease;
+  backdrop-filter: blur(6px);
+}
+
+.lightbox-nav.prev {
+  left: 10px;
+}
+
+.lightbox-nav.next {
+  right: 10px;
+}
+
+.lightbox-nav:hover:not(.disabled) {
+  background: rgba(59, 130, 246, 0.5);
+  border-color: rgba(59, 130, 246, 0.7);
+  transform: translateY(-50%) scale(1.05);
+}
+
+.lightbox-nav.disabled {
+  opacity: 0.2;
+  cursor: not-allowed;
+}
+
+/* Metadata strip */
+.lightbox-meta {
+  display: flex;
+  gap: 0;
+  border-top: 1px solid var(--border);
+  background: var(--bg-surface);
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+.lightbox-meta-item {
+  display: flex;
+  flex-direction: column;
+  padding: 10px 18px;
+  border-right: 1px solid var(--border);
+  min-width: 0;
+  flex: 1;
+}
+
+.lightbox-meta-item.keyboard-hint {
+  border-right: none;
+}
+
+.lm-label {
+  font-size: 0.62rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 3px;
+  white-space: nowrap;
+}
+
+.lm-val {
+  font-size: 0.78rem;
+  color: var(--text-primary);
+  font-family: 'Courier New', monospace;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ============================================================
+   FILE MANAGER — minimal sticky-folder design
+   ============================================================ */
+.file-manager {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg-surface);
+}
+
+.fm-header {
+  padding: 12px 14px 8px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.fm-header-title {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
+.fm-header-icon {
+  font-size: 1rem;
+}
+
+.fm-header-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.fm-dot {
+  opacity: 0.4;
+}
+
+/* ── Scrollable body — the only part that moves ── */
+.fm-scroll-body {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-height: 0;
+}
+
+.fm-scroll-body::-webkit-scrollbar {
+  width: 4px;
+}
+
+.fm-scroll-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.fm-scroll-body::-webkit-scrollbar-thumb {
+  background: var(--border-bright);
+  border-radius: 4px;
+}
+
+/* ── Empty state ── */
+.fm-empty-state {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 48px 16px;
+  text-align: center;
+}
+
+.fm-empty-icon {
+  font-size: 2.8rem;
+  animation: float 3s ease-in-out infinite;
+}
+
+.fm-empty-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.fm-empty-sub {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+  max-width: 210px;
+}
+
+/* ── Each folder block ── */
+.fmf-block {
+  display: block;
+  /* folders flow directly in scroll body */
+}
+
+/* STICKY folder header — stays visible while images scroll */
+.fmf-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  padding: 6px 12px;
+  background: rgba(9, 9, 11, 0.85); /* Zinc 950 glass */
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  user-select: none;
+  transition: background 0.15s ease;
+  margin-bottom: 2px;
+}
+
+.fmf-header:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+/* Active — folder contains the highlighted/selected image */
+.fmf-header.fmf-header-active {
+  background: rgba(14, 165, 233, 0.08);
+  border-bottom-color: rgba(14, 165, 233, 0.2);
+}
+
+.fmf-block:first-child .fmf-header {
+  border-top: none;
+}
+
+.fmf-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.fmf-name {
+  flex: 1;
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  letter-spacing: 0.01em;
+}
+
+.fmf-count {
+  font-size: 0.6rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: rgba(255, 255, 255, 0.05);
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+}
+
+/* Chevron toggle indicator */
+.fmf-chevron {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  flex-shrink: 0;
+  transition: transform 0.2s ease, color 0.15s ease;
+  line-height: 1;
+}
+
+.fmf-chevron.open {
+  transform: rotate(90deg);
+  color: var(--text-secondary);
+}
+
+/* ── Image name list inside the folder ── */
+.fmf-list {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Empty folder message */
+.fmf-empty {
+  padding: 8px 12px 8px 20px;
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* Single image row — name ONLY, super minimal */
+.fmi-row {
+  display: flex;
+  align-items: stretch;
+  cursor: pointer;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.015);
+  transition: background 0.1s ease;
+}
+
+.fmi-row:last-child {
+  border-bottom: none;
+}
+
+.fmi-row:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+/* Selected — clicked from map or sidebar */
+.fmi-row.fmi-selected {
+  background: rgba(14, 165, 233, 0.1);
+}
+
+/* Hovered — map marker mouseover highlights this row */
+.fmi-row.fmi-hovered {
+  background: rgba(255, 255, 255, 0.05);
+  box-shadow: inset 2px 0 0 rgba(14, 165, 233, 0.7);
+}
+
+.fmi-row.fmi-selected.fmi-hovered {
+  background: rgba(14, 165, 233, 0.15);
+}
+
+/* Thin folder-color bar on the left edge */
+.fmi-accent {
+  width: 2px;
+  flex-shrink: 0;
+  border-radius: 0 2px 2px 0;
+}
+
+/* Image name — the ONLY content */
+.fmi-name {
+  flex: 1;
+  font-size: 0.68rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 4px 8px 4px 8px;
+  line-height: 1.4;
+  letter-spacing: 0.01em;
+  transition: color 0.12s ease;
+}
+
+.fmi-row:hover .fmi-name,
+.fmi-row.fmi-selected .fmi-name {
+  color: var(--text-primary);
+}
+
+.fmi-row.fmi-hovered .fmi-name {
+  color: #7dd3fc;
+}
+
+/* ── Stats bar (fixed at bottom) ── */
+.fm-stats-bar {
+  display: flex;
+  border-top: 1px solid var(--border);
+  background: var(--bg-surface);
+  flex-shrink: 0;
+}
+
+.fm-stat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px 4px;
+  border-right: 1px solid rgba(255,255,255,0.03);
+}
+
+.fm-stat:last-child {
+  border-right: none;
+}
+
+.fm-stat-label {
+  font-size: 0.55rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.fm-stat-val {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* ============================================================
+   MAP MARKERS & HOVER CARD
+   ============================================================ */
+
+/* Folder focus pop animation */
+@keyframes folder-focus {
+  0% { transform: scale(0.5); box-shadow: 0 0 0 0 rgba(34, 211, 238, 0.8); }
+  50% { transform: scale(1.3); box-shadow: 0 0 0 15px rgba(34, 211, 238, 0); }
+  100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(34, 211, 238, 0); }
+}
+
+.map-wrapper.folder-just-focused .leaflet-marker-icon > div {
+  animation: folder-focus 1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes marker-pulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7);
+  }
+
+  70% {
+    transform: scale(1.15);
+    box-shadow: 0 0 0 12px rgba(255, 255, 255, 0);
+  }
+
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
+  }
+}
+
+.marker-selected-pulse {
+  animation: marker-pulse 1.5s infinite ease-in-out;
+  z-index: 1000 !important;
+}
+
+@keyframes hc-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.88) translateY(6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.hover-card {
+  position: absolute;
+  z-index: 2500;
+  width: 248px;
+  background: rgba(8, 12, 22, 0.96);
+  border: 1px solid var(--border-bright);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(16px);
+  animation: hc-pop 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
+  pointer-events: auto;
+}
+
+/* Close button — re-enables pointer-events just for itself */
+.hover-card-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 10;
+  width: 20px;
+  height: 20px;
+  background: rgba(0, 0, 0, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 50%;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.55rem;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.hover-card-close:hover {
+  background: rgba(239, 68, 68, 0.6);
+  color: white;
+}
+
+.hover-card-stripe {
+  height: 3px;
+  width: 100%;
+}
+
+.hover-card-thumb {
+  width: 100%;
+  height: 130px;
+  object-fit: cover;
+  display: block;
+}
+
+.hover-card-body {
+  padding: 10px 12px;
+}
+
+.hover-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.hover-card-type {
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.hover-card-folder-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.hover-card-name {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 2px;
+}
+
+.hover-card-folder {
+  font-size: 0.67rem;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hover-card-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 0.66rem;
+  color: var(--text-muted);
+  font-family: 'Courier New', monospace;
+  margin-bottom: 8px;
+}
+
+/* Full View button */
+.hover-card-btn {
+  width: 100%;
+  padding: 6px 0;
+  background: linear-gradient(135deg, #2563eb, #7c3aed);
+  color: white;
+  border: none;
+  border-radius: 7px;
+  font-size: 0.74rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  letter-spacing: 0.02em;
+}
+
+.hover-card-btn:hover {
+  filter: brightness(1.15);
+  transform: translateY(-1px);
+}
+
+/* ── Tab bar: shown when multiple images share the same GPS point ── */
+.hover-card-tabs {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 8px;
+  background: rgba(0, 0, 0, 0.3);
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+
+.hover-tab-btn {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 3px 8px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 2px solid transparent;
+  border-radius: 6px 6px 0 0;
+  cursor: pointer;
+  color: var(--text-muted);
+  font-size: 0.65rem;
+  font-weight: 600;
+  transition: all 0.15s ease;
+  line-height: 1;
+}
+
+.hover-tab-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: var(--text-primary);
+}
+
+.hover-tab-btn.active {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.hover-tab-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.hover-tab-label {
+  font-size: 0.62rem;
+}
+
+.hover-tab-count {
+  margin-left: auto;
+  font-size: 0.6rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  padding-left: 4px;
+}
+
+/* ============================================================
+   POPUP FOLDER TAG
+   ============================================================ */
+.popup-folder-tag {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.68rem;
+  color: var(--text-secondary);
+  border: 1px solid;
+  border-radius: 999px;
+  padding: 2px 8px;
+  margin-bottom: 6px;
+  width: fit-content;
+}
+
+.popup-folder-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* Group badge — shown in popup when multiple images share a GPS point */
+.popup-group-badge {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  margin-bottom: 7px;
+}
+
+.popup-group-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 0.62rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 999px;
+  border: 1px solid;
+  letter-spacing: 0.02em;
+  text-transform: capitalize;
+}
+
+
+/* ============================================================
+   LIGHTBOX FOLDER PILL
+   ============================================================ */
+.lightbox-folder-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.lightbox-folder-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* ============================================================
+   FILE MANAGER — LEGEND & TREE WRAPPER
+   ============================================================ */
+.fm-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.fm-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.fm-legend-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.fm-legend-name {
+  font-size: 0.73rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+}
+
+.fm-legend-count {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  padding: 1px 6px;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+.fm-tree-wrapper {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-height: 0;
+}
+
+.fm-tree-wrapper::-webkit-scrollbar {
+  width: 4px;
+}
+
+.fm-tree-wrapper::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.fm-tree-wrapper::-webkit-scrollbar-thumb {
+  background: var(--border-bright);
+  border-radius: 4px;
+}
+
+/* ============================================================
+   REACT-COMPLEX-TREE — DARK THEME OVERRIDES
+   ============================================================ */
+.rct-tree-root {
+  background: transparent !important;
+  font-family: 'Inter', sans-serif !important;
+  font-size: 0.78rem !important;
+  padding: 4px 0 !important;
+  --rct-color-tree-bg: transparent;
+  --rct-color-tree-focus-outline: transparent;
+  --rct-item-height: auto;
+}
+
+.rct-tree-item-li {
+  list-style: none !important;
+}
+
+.rct-tree-item-button {
+  background: transparent !important;
+  color: var(--text-primary) !important;
+  border-radius: 6px !important;
+  transition: background 0.15s ease !important;
+  padding: 0 !important;
+  width: 100% !important;
+}
+
+.rct-tree-item-button:hover {
+  background: rgba(255, 255, 255, 0.05) !important;
+}
+
+.rct-tree-item-button-focused,
+.rct-tree-item-button-selected {
+  background: rgba(59, 130, 246, 0.12) !important;
+  outline: none !important;
+}
+
+.rct-tree-item-arrow {
+  color: var(--text-muted) !important;
+}
+
+/* ── Custom folder label ── */
+.rct-folder-label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 8px 7px 4px;
+  width: 100%;
+  min-width: 0;
+}
+
+.rct-folder-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.rct-folder-name {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rct-folder-meta {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.rct-folder-count {
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  padding: 0px 5px;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+.rct-pill {
+  font-size: 0.6rem;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+}
+
+.rct-pill.thermal {
+  background: rgba(249, 115, 22, 0.12);
+  border-color: rgba(249, 115, 22, 0.35);
+  color: #fb923c;
+}
+
+.rct-pill.visual {
+  background: rgba(59, 130, 246, 0.12);
+  border-color: rgba(59, 130, 246, 0.35);
+  color: #60a5fa;
+}
+
+/* ── Custom image label ── */
+.rct-image-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px 5px 0;
+  width: 100%;
+  min-width: 0;
+  border-radius: 5px;
+  transition: background 0.12s ease;
+}
+
+.rct-image-label.rct-selected {
+  background: rgba(59, 130, 246, 0.14);
+}
+
+.rct-image-label.rct-hovered {
+  background: rgba(59, 130, 246, 0.08);
+  outline: 1px solid rgba(59, 130, 246, 0.28);
+  outline-offset: -1px;
+}
+
+.rct-image-accent {
+  width: 3px;
+  min-height: 28px;
+  border-radius: 0 2px 2px 0;
+  flex-shrink: 0;
+  align-self: stretch;
+}
+
+.rct-image-type {
+  font-size: 0.72rem;
+  flex-shrink: 0;
+}
+
+.rct-image-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.rct-image-name {
+  font-size: 0.71rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rct-image-time {
+  font-size: 0.6rem;
+  color: var(--text-muted);
+}
+
+.rct-image-alt {
+  font-size: 0.6rem;
+  color: var(--text-muted);
+  font-family: 'Courier New', monospace;
+  flex-shrink: 0;
+}
+
+/* ============================================================
+   KML IMPORT BUTTON
+   ============================================================ */
+/* The original .btn-kml-upload was merged above */
+
+/* KML stat chip */
+.stat-chip.kml-chip {
+  border-color: rgba(6, 182, 212, 0.4);
+  background: rgba(6, 182, 212, 0.08);
+}
+
+/* ============================================================
+   FILE MANAGER — TABS
+   ============================================================ */
+.fm-tabs {
+  display: flex;
+  gap: 2px;
+  margin-top: 7px;
+  background: var(--bg-base);
+  border-radius: 8px;
+  padding: 3px;
+}
+
+.fm-tab {
+  flex: 1;
+  padding: 5px 6px;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: var(--text-muted);
+  font-size: 0.7rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.fm-tab:hover {
+  color: var(--text-secondary);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.fm-tab.active {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.3);
+}
+
+.fm-tab-count {
+  background: var(--accent-blue);
+  color: white;
+  font-size: 0.6rem;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 999px;
+  line-height: 1.3;
+}
+
+.fm-empty-small {
+  padding: 28px 16px;
+}
+
+/* ============================================================
+   FOLDER BLOCK — DELETE BUTTON
+   ============================================================ */
+.fmf-header {
+  display: flex !important;
+  align-items: center !important;
+  padding: 0 !important;
+}
+
+.fmf-header-left {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 8px 7px 12px;
+  cursor: pointer;
+  min-width: 0;
+}
+
+.fmf-delete-btn {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 0.6rem;
+  font-weight: 700;
+  cursor: pointer;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 6px;
+  opacity: 0;
+  transition: opacity 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+
+.fmf-header:hover .fmf-delete-btn,
+.kml-layer-header:hover .fmf-delete-btn {
+  opacity: 1;
+}
+
+.fmf-delete-btn:hover {
+  background: rgba(239, 68, 68, 0.18);
+  color: #fca5a5;
+  opacity: 1 !important;
+}
+
+/* ── fmi-icon in row */
+.fmi-icon {
+  font-size: 0.68rem;
+  flex-shrink: 0;
+  padding: 4px 2px 4px 6px;
+}
+
+/* ============================================================
+   KML LAYER BLOCK
+   ============================================================ */
+.kml-layer-block {
+  border-bottom: 1px solid var(--border);
+}
+
+.kml-layer-block.kml-layer-hidden {
+  opacity: 0.5;
+}
+
+.kml-layer-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  background: rgba(9, 9, 11, 0.85); /* Zinc 950 glass */
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  user-select: none;
+  transition: background 0.15s ease;
+  margin-bottom: 2px;
+}
+
+.kml-layer-header:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.kml-layer-block:first-child .kml-layer-header {
+  border-top: none;
+}
+
+.kml-layer-header-left {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 8px 7px 12px;
+  cursor: pointer;
+  min-width: 0;
+}
+
+.kml-layer-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.kml-layer-name {
+  flex: 1;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.kml-layer-badge {
+  font-size: 0.58rem;
+  font-weight: 700;
+  padding: 1px 5px;
+  background: rgba(6, 182, 212, 0.15);
+  border: 1px solid rgba(6, 182, 212, 0.4);
+  color: #22d3ee;
+  border-radius: 999px;
+  letter-spacing: 0.04em;
+  flex-shrink: 0;
+}
+
+.kml-layer-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-right: 4px;
+}
+
+.kml-vis-btn {
+  width: 24px;
+  height: 24px;
+  background: transparent;
+  border: none;
+  font-size: 0.72rem;
+  cursor: pointer;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.15s ease, background 0.15s ease;
+}
+
+.kml-layer-header:hover .kml-vis-btn {
+  opacity: 1;
+}
+
+.kml-vis-btn.active {
+  opacity: 0.7;
+}
+
+.kml-vis-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  opacity: 1 !important;
+}
+
+/* ── KML layer tree body */
+.kml-layer-tree {
+  padding: 2px 0;
+}
+
+/* ============================================================
+   KML FOLDER TREE NODES
+   ============================================================ */
+.kml-folder-node {
+  display: block;
+}
+
+.kml-folder-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  padding-right: 8px;
+  cursor: pointer;
+  border-radius: 0;
+  user-select: none;
+  transition: background 0.12s ease;
+}
+
+.kml-folder-header:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.kml-folder-header.open {
+  color: var(--text-primary);
+}
+
+.kml-folder-icon {
+  font-size: 0.72rem;
+  flex-shrink: 0;
+}
+
+.kml-folder-name {
+  flex: 1;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.kml-folder-header:hover .kml-folder-name {
+  color: var(--text-primary);
+}
+
+.kml-no-chevron {
+  width: 0.9rem;
+  flex-shrink: 0;
+  display: inline-block;
+}
+
+.kml-folder-children {
+  border-left: 1px solid var(--border);
+  margin-left: 18px;
+}
+
+/* ============================================================
+   KML PLACEMARK ROW
+   ============================================================ */
+.kml-pm-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.025);
+  transition: background 0.1s ease;
+  cursor: default;
+}
+
+.kml-pm-row:hover {
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.kml-pm-icon {
+  font-size: 0.65rem;
+  flex-shrink: 0;
+  opacity: 0.8;
+}
+
+.kml-pm-name {
+  flex: 1;
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.kml-pm-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  opacity: 0.7;
+}
+
+/* ============================================================
+   KML POPUP
+   ============================================================ */
+.kml-popup-inner {
+  padding: 10px 12px;
+}
+
+/* ============================================================
+   MAP OVERLAY — updated to include KML hint
+   ============================================================ */
+.map-overlay-content p strong {
+  color: var(--text-secondary);
+}
+
+/* ============================================================
+   KML PLACEMARK ROW — SELECTED & HOVERED STATES
+   ============================================================ */
+
+/* Clicked from file manager → selected on map */
+.kml-pm-row.kml-pm-selected {
+  background: rgba(6, 182, 212, 0.14);
+  box-shadow: inset 3px 0 0 rgba(6, 182, 212, 0.85);
+}
+
+.kml-pm-row.kml-pm-selected .kml-pm-name {
+  color: #22d3ee;
+}
+
+/* Hovered from map → highlighted in file manager */
+.kml-pm-row.kml-pm-hovered {
+  background: rgba(6, 182, 212, 0.07);
+  box-shadow: inset 3px 0 0 rgba(6, 182, 212, 0.5);
+}
+
+.kml-pm-row.kml-pm-hovered .kml-pm-name {
+  color: #67e8f9;
+}
+
+.kml-pm-row.kml-pm-selected.kml-pm-hovered {
+  background: rgba(6, 182, 212, 0.2);
+}
+
+/* Folder header click-to-fly cursor hint */
+.kml-folder-name:hover,
+.kml-layer-name:hover {
+  color: #22d3ee;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 2px;
+}
+
+/* ============================================================
+   IMAGE TREE — SUB-FOLDER HEADERS
+   ============================================================ */
+
+/* The clickable row for a virtual sub-folder inside the image tree */
+.img-subfolder-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  cursor: pointer;
+  user-select: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+  transition: filter 0.12s ease;
+  position: relative;
+  background: var(--bg-elevated);
+}
+
+/* Thin left border guide, coloured per depth via padding-left offset */
+.img-subfolder-header::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--border-bright);
+  opacity: 0.4;
+}
+
+.img-subfolder-header:hover {
+  filter: brightness(1.2);
+}
+
+.img-subfolder-icon {
+  font-size: 0.72rem;
+  flex-shrink: 0;
+}
+
+.img-subfolder-name {
+  flex: 1;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.img-subfolder-header:hover .img-subfolder-name {
+  color: var(--text-primary);
+}
+
+/* ── Focused sub-folder (map filtered to this node) */
+.img-subfolder-header.img-subfolder-focused {
+  background: rgba(6, 182, 212, 0.1);
+  box-shadow: inset 3px 0 0 rgba(6, 182, 212, 0.8);
+}
+
+.img-subfolder-header.img-subfolder-focused .img-subfolder-name {
+  color: #22d3ee;
+}
+
+/* ── Focused root folder header */
+.fmf-header.fmf-header-focused {
+  background: rgba(6, 182, 212, 0.08);
+  border-bottom-color: rgba(6, 182, 212, 0.4);
+}
+
+.fmf-header.fmf-header-focused .fmf-name {
+  color: #22d3ee;
+}
+
+/* ============================================================
+   INFRA TOGGLES (MapView)
+   ============================================================ */
+.infra-toggles {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 1000;
+}
+
+.infra-toggle-btn {
+  background: rgba(9, 9, 11, 0.75);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--text-secondary);
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition);
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  text-align: left;
+  min-width: 100px;
+}
+
+.infra-toggle-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: var(--text-primary);
+}
+
+.infra-toggle-btn.active {
+  background: rgba(14, 165, 233, 0.15);
+  border-color: rgba(14, 165, 233, 0.4);
+  color: #7dd3fc;
+  box-shadow: 0 0 15px rgba(14, 165, 233, 0.1);
+}
+
+.infra-toggle-btn.active::before {
+  content: '';
+  width: 4px;
+  height: 4px;
+  background: #7dd3fc;
+  border-radius: 50%;
+  box-shadow: 0 0 6px #7dd3fc;
+}
