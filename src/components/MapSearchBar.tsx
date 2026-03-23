@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom'
 import { useStore } from '../store/useStore'
 
 interface Suggestion {
-    place_id: number
+    place_id: string | number
     display_name: string
     lat: string
     lon: string
@@ -15,7 +15,6 @@ interface Suggestion {
         village?: string
         state?: string
         country?: string
-        postcode?: string
     }
 }
 
@@ -47,7 +46,6 @@ const MapSearchBar: React.FC = () => {
     const [activeIdx, setActiveIdx] = useState(-1)
     const [coordResult, setCoordResult] = useState<{ lat: number; lon: number } | null>(null)
     const [error, setError] = useState<string | null>(null)
-    // Position of the portal dropdown (screen coords, below the input)
     const [dropPos, setDropPos] = useState<{ top: number; left: number; width: number } | null>(null)
 
     const wrapperRef = useRef<HTMLDivElement>(null)
@@ -58,18 +56,16 @@ const MapSearchBar: React.FC = () => {
 
     const { mapFlyTo, setSearchPin } = useStore()
 
-    // Recompute portal position from the search input element's bounding rect
     const computeDropPos = useCallback(() => {
         if (!wrapperRef.current) return
         const rect = wrapperRef.current.getBoundingClientRect()
         setDropPos({
-            top: rect.bottom + 6,   // 6px gap below input
+            top: rect.bottom + 6,
             left: rect.left,
-            width: Math.max(rect.width, 380),
+            width: Math.max(rect.width, 420),
         })
     }, [])
 
-    // Cleanup on unmount
     useEffect(() => {
         return () => {
             if (timerRef.current) clearTimeout(timerRef.current)
@@ -77,7 +73,6 @@ const MapSearchBar: React.FC = () => {
         }
     }, [])
 
-    // Close when clicking outside both the input and the portal dropdown
     useEffect(() => {
         const handler = (e: MouseEvent) => {
             const target = e.target as Node
@@ -92,7 +87,6 @@ const MapSearchBar: React.FC = () => {
         return () => document.removeEventListener('mousedown', handler)
     }, [])
 
-    // Recompute position when dropdown opens or window resizes
     useEffect(() => {
         if (isOpen) {
             computeDropPos()
@@ -112,7 +106,6 @@ const MapSearchBar: React.FC = () => {
             return
         }
 
-        // Check for coordinates first — show coordinate card without API call
         const coords = parseCoordinates(text)
         if (coords) {
             setCoordResult(coords)
@@ -130,37 +123,54 @@ const MapSearchBar: React.FC = () => {
         setError(null)
 
         try {
-            const url = new URL('https://nominatim.openstreetmap.org/search')
+            // We use PHOTON API (powered by OSM) which is much better at "Google-like" fuzzy POI search.
+            // It has better searching for infrastructure and specific names.
+            const url = new URL('https://photon.komoot.io/api/')
             url.searchParams.set('q', text)
-            url.searchParams.set('format', 'json')
-            url.searchParams.set('addressdetails', '1')
-            url.searchParams.set('limit', '8')
-            url.searchParams.set('countrycodes', 'in')   // India-first results
-            url.searchParams.set('accept-language', 'en')
-            // Add feature-specific hints if searching for infrastructure
-            const infraTerms = ['solar', 'substation', 'power', 'grid', 'transmission', 'plant']
-            const queryLower = text.toLowerCase()
-            const hasInfraTerm = infraTerms.some(term => queryLower.includes(term))
-            
-            if (hasInfraTerm) {
-                // Enhance for infrastructure
-                url.searchParams.set('extratags', '1')
-                url.searchParams.set('namedetails', '1')
-            }
+            url.searchParams.set('limit', '10')
+            // Prioritize results in India [lon_min, lat_min, lon_max, lat_max]
+            // India-ish bbox: [68, 8, 97, 37]
+            url.searchParams.set('bbox', '68,8,97,37')
+            url.searchParams.set('lang', 'en')
 
             const res = await fetch(url.toString(), {
-                signal: abortRef.current.signal,
-                headers: { 'Accept-Language': 'en' },
+                signal: abortRef.current.signal
             })
-            const data: Suggestion[] = await res.json()
-            setSuggestions(data)
-            if (data.length > 0) {
-                setIsOpen(true)
-                computeDropPos()
-            } else {
-                setIsOpen(true)   // show "no results" message
-                computeDropPos()
-            }
+            const data = await res.json()
+            
+            // Map Photon results to our Suggestion format
+            const mapped: Suggestion[] = data.features.map((f: any, i: number) => {
+                const p = f.properties
+                const [lon, lat] = f.geometry.coordinates
+                
+                // Construct a display name similar to standard address
+                const parts = [
+                    p.name,
+                    p.street,
+                    p.district,
+                    p.city || p.town || p.village,
+                    p.state,
+                    p.country
+                ].filter(Boolean)
+
+                return {
+                    place_id: `photon-${i}-${lat}-${lon}`,
+                    display_name: parts.join(', '),
+                    lat: String(lat),
+                    lon: String(lon),
+                    type: p.osm_value || p.type || 'place',
+                    class: p.osm_key || 'place',
+                    address: {
+                        city: p.city || p.town || p.village,
+                        state: p.state,
+                        country: p.country
+                    }
+                }
+            })
+
+            setSuggestions(mapped)
+            setIsOpen(true)
+            computeDropPos()
         } catch (e: unknown) {
             if ((e as Error).name !== 'AbortError') {
                 setError('Search failed. Check your connection.')
@@ -194,20 +204,21 @@ const MapSearchBar: React.FC = () => {
         const lon = parseFloat(s.lon)
         if (isNaN(lat) || isNaN(lon)) return
 
-        // Intelligent zoom based on place type
         let zoom = 13
         const cls = s.class
         const typ = s.type
         if (cls === 'boundary' || typ === 'administrative') {
             if (s.address?.country && !s.address?.state) zoom = 5
-            else if (s.address?.state && !s.address?.city && !s.address?.town) zoom = 7
+            else if (s.address?.state && !s.address?.city) zoom = 7
             else zoom = 11
-        } else if (typ === 'city' || typ === 'town' || typ === 'municipality') {
+        } else if (typ === 'city' || typ === 'town') {
             zoom = 12
         } else if (typ === 'village' || typ === 'hamlet') {
             zoom = 14
         } else if (typ === 'suburb' || typ === 'neighbourhood') {
             zoom = 15
+        } else {
+            zoom = 16 // POI zoom
         }
 
         mapFlyTo({ lat, lon, zoom })
@@ -267,25 +278,25 @@ const MapSearchBar: React.FC = () => {
     }
 
     const getTypeIcon = (s: Suggestion) => {
-        const t = s.type
-        const cls = s.class
+        const t = s.type?.toLowerCase() || ''
+        const cls = s.class?.toLowerCase() || ''
+        
         if (t === 'city' || t === 'town' || t === 'municipality') return '🏙️'
         if (t === 'village' || t === 'hamlet') return '🏘️'
-        if (t === 'state' || t === 'region') return '🗺️'
+        if (t.includes('state') || t === 'region') return '🗺️'
         if (t === 'country') return '🌏'
         if (t === 'suburb' || t === 'neighbourhood') return '🏠'
-        if (t === 'airport') return '✈️'
-        if (t === 'river' || t === 'lake' || t === 'water') return '💧'
-        if (cls === 'power' || t.includes('solar') || t.includes('substation')) return '⚡'
+        if (t === 'airport' || cls === 'aeroway') return '✈️'
+        if (t === 'river' || t === 'lake' || t === 'water' || cls === 'waterway') return '💧'
+        if (cls === 'power' || t.includes('solar') || t.includes('substation') || t.includes('grid')) return '⚡'
         if (cls === 'highway') return '🛣️'
         if (cls === 'railway') return '🚉'
         if (cls === 'amenity') return '📍'
         if (cls === 'tourism') return '🏛️'
-        if (t.includes('plant')) return '🏭'
+        if (t.includes('plant') || cls === 'industrial') return '🏭'
         return '📍'
     }
 
-    // The portal dropdown — rendered directly into document.body to escape any z-index stacking context
     const portalDropdown = isOpen && dropPos ? createPortal(
         <div
             ref={dropRef}
@@ -301,7 +312,6 @@ const MapSearchBar: React.FC = () => {
                 zIndex: 999999,
             }}
         >
-            {/* Coordinate result */}
             {coordResult && (
                 <button
                     className="search-item search-item-coord"
@@ -320,7 +330,6 @@ const MapSearchBar: React.FC = () => {
                 </button>
             )}
 
-            {/* Regular place suggestions */}
             {suggestions.map((s, idx) => {
                 const { name, context } = getLabel(s)
                 return (
@@ -343,15 +352,13 @@ const MapSearchBar: React.FC = () => {
                 )
             })}
 
-            {/* No results */}
             {!coordResult && suggestions.length === 0 && !loading && !error && query.length >= 2 && (
                 <div className="search-no-results">
                     <span>🔍</span>
-                    <span>No places found for "<strong>{query}</strong>"</span>
+                    <span>No results found for "<strong>{query}</strong>"</span>
                 </div>
             )}
 
-            {/* Error */}
             {error && (
                 <div className="search-no-results search-error">
                     <span>⚠️</span>
@@ -359,7 +366,6 @@ const MapSearchBar: React.FC = () => {
                 </div>
             )}
 
-            {/* Keyboard shortcuts hint */}
             <div className="search-hint">
                 <kbd>↑↓</kbd> Navigate &nbsp;·&nbsp;
                 <kbd>Enter</kbd> Go &nbsp;·&nbsp;
@@ -373,7 +379,6 @@ const MapSearchBar: React.FC = () => {
     return (
         <div className="map-search-container" role="search" ref={wrapperRef}>
             <div className="map-search-wrapper">
-                {/* Search Icon / Spinner */}
                 <span className="map-search-icon" aria-hidden="true">
                     {loading ? (
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="search-spinner-icon">
@@ -393,7 +398,7 @@ const MapSearchBar: React.FC = () => {
                     id="map-search-input"
                     className="map-search-input"
                     type="text"
-                    placeholder="Search city, infrastructure (solar, substation) or coords…"
+                    placeholder="Search any place, city, shop or coordinates…"
                     value={query}
                     onChange={handleInput}
                     onKeyDown={handleKeyDown}
@@ -405,11 +410,7 @@ const MapSearchBar: React.FC = () => {
                     }}
                     autoComplete="off"
                     spellCheck={false}
-                    aria-label="Search places or enter coordinates"
-                    aria-autocomplete="list"
-                    aria-expanded={isOpen}
-                    aria-controls="map-search-dropdown"
-                    aria-activedescendant={activeIdx >= 0 ? `search-item-${activeIdx}` : undefined}
+                    aria-label="Search places"
                 />
 
                 {query && (
@@ -417,7 +418,6 @@ const MapSearchBar: React.FC = () => {
                         className="map-search-clear"
                         onClick={clearSearch}
                         title="Clear search"
-                        aria-label="Clear search"
                     >
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
                             <line x1="18" y1="6" x2="6" y2="18" />
@@ -427,7 +427,6 @@ const MapSearchBar: React.FC = () => {
                 )}
             </div>
 
-            {/* Portal renders dropdown directly in document.body — no z-index clipping */}
             {portalDropdown}
         </div>
     )
