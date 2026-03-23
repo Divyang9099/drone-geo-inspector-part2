@@ -1,4 +1,5 @@
 # निरीक्षकः — Drone Geo Inspector Part 2
+https://drone-geo-inspector-part2.vercel.app/
 
 > A professional, browser-based tool for visualizing drone survey images on an interactive map. Extracts GPS metadata from EXIF data, renders clustered markers, supports KML overlays, and features a live High-Definition Power Infrastructure map powered by OpenInfraMap vector tiles.
 
