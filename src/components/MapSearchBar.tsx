@@ -36,7 +36,8 @@ function parseCoordinates(input: string): { lat: number; lon: number } | null {
     return null
 }
 
-const DEBOUNCE_MS = 300
+const DEBOUNCE_MS = 125 // Reduced from 300ms for "immediate" feel
+const cache: Record<string, Suggestion[]> = {}
 
 const MapSearchBar: React.FC = () => {
     const [query, setQuery] = useState('')
@@ -100,13 +101,14 @@ const MapSearchBar: React.FC = () => {
     }, [isOpen, computeDropPos])
 
     const fetchSuggestions = useCallback(async (text: string) => {
-        if (text.length < 2) {
+        const t = text.trim()
+        if (t.length < 2) {
             setSuggestions([])
             setIsOpen(false)
             return
         }
 
-        const coords = parseCoordinates(text)
+        const coords = parseCoordinates(t)
         if (coords) {
             setCoordResult(coords)
             setSuggestions([])
@@ -117,19 +119,24 @@ const MapSearchBar: React.FC = () => {
         }
         setCoordResult(null)
 
+        // Instant cache lookup
+        if (cache[t]) {
+            setSuggestions(cache[t])
+            setIsOpen(true)
+            computeDropPos()
+            setLoading(false)
+            return
+        }
+
         abortRef.current?.abort()
         abortRef.current = new AbortController()
         setLoading(true)
         setError(null)
 
         try {
-            // We use PHOTON API (powered by OSM) which is much better at "Google-like" fuzzy POI search.
-            // It has better searching for infrastructure and specific names.
             const url = new URL('https://photon.komoot.io/api/')
-            url.searchParams.set('q', text)
+            url.searchParams.set('q', t)
             url.searchParams.set('limit', '10')
-            // Prioritize results in India [lon_min, lat_min, lon_max, lat_max]
-            // India-ish bbox: [68, 8, 97, 37]
             url.searchParams.set('bbox', '68,8,97,37')
             url.searchParams.set('lang', 'en')
 
@@ -138,21 +145,10 @@ const MapSearchBar: React.FC = () => {
             })
             const data = await res.json()
             
-            // Map Photon results to our Suggestion format
             const mapped: Suggestion[] = data.features.map((f: any, i: number) => {
                 const p = f.properties
                 const [lon, lat] = f.geometry.coordinates
-                
-                // Construct a display name similar to standard address
-                const parts = [
-                    p.name,
-                    p.street,
-                    p.district,
-                    p.city || p.town || p.village,
-                    p.state,
-                    p.country
-                ].filter(Boolean)
-
+                const parts = [p.name, p.street, p.district, p.city || p.town || p.village, p.state, p.country].filter(Boolean)
                 return {
                     place_id: `photon-${i}-${lat}-${lon}`,
                     display_name: parts.join(', '),
@@ -160,14 +156,11 @@ const MapSearchBar: React.FC = () => {
                     lon: String(lon),
                     type: p.osm_value || p.type || 'place',
                     class: p.osm_key || 'place',
-                    address: {
-                        city: p.city || p.town || p.village,
-                        state: p.state,
-                        country: p.country
-                    }
+                    address: { city: p.city || p.town || p.village, state: p.state, country: p.country }
                 }
             })
 
+            cache[t] = mapped // Store in cache for next time
             setSuggestions(mapped)
             setIsOpen(true)
             computeDropPos()
