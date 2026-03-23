@@ -3,6 +3,7 @@ import { useStore, FOLDER_COLORS, KML_COLORS } from '../store/useStore'
 import logoUrl from '../assets/favicon.png'
 import { processFolder } from '../utils/exifExtractor'
 import { parseKmlFile, extractKmlFromKmz } from '../utils/kmlParser'
+import MapSearchBar from './MapSearchBar'
 
 const TopBar: React.FC = () => {
     const folderInputRef = useRef<HTMLInputElement>(null)
@@ -162,7 +163,7 @@ const TopBar: React.FC = () => {
                 />
             </div>
 
-            {/* ── Center: progress or filters ── */}
+            {/* ── Center: search bar + progress/filters ── */}
             <div className="topbar-center">
                 {isLoading ? (
                     <div className="progress-info">
@@ -173,16 +174,19 @@ const TopBar: React.FC = () => {
                         </span>
                     </div>
                 ) : (
-                    <div className="filter-group">
-                        {filters.map((f) => (
-                            <button
-                                key={f.value}
-                                className={`filter-btn ${filterType === f.value ? 'active' : ''}`}
-                                onClick={() => setFilterType(f.value)}
-                            >
-                                {f.label}
-                            </button>
-                        ))}
+                    <div className="topbar-center-inner">
+                        <MapSearchBar />
+                        <div className="filter-group">
+                            {filters.map((f) => (
+                                <button
+                                    key={f.value}
+                                    className={`filter-btn ${filterType === f.value ? 'active' : ''}`}
+                                    onClick={() => setFilterType(f.value)}
+                                >
+                                    {f.label}
+                                </button>
+                            ))}
+                        </div>
                     </div>
                 )}
             </div>

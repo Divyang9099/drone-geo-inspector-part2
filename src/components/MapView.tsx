@@ -262,6 +262,22 @@ function createGroupedMarkerIcon(color: string, count: number, isSelected: boole
 }
 
 
+// ── Pulse Marker for Searched Locations ────────────────────────────
+function createPulseIcon(): L.DivIcon {
+    return L.divIcon({
+        className: 'search-pulse-icon',
+        html: `
+            <div class="pulse-container">
+                <div class="pulse-ring"></div>
+                <div class="pulse-dot"></div>
+            </div>
+        `,
+        iconSize: [40, 40],
+        iconAnchor: [20, 20],
+    })
+}
+
+
 // ── Type-based marker color (for single images) ──────────────────
 function getMarkerColor(image: ImageData): string {
     if (image.type === 'thermal') return '#f97316'
@@ -335,6 +351,22 @@ const FocusSelected: React.FC<{ selected: ImageData | null }> = ({ selected }) =
 const CloseCardOnMapClick: React.FC = () => {
     const { setHoveredImage } = useStore()
     useMapEvents({ click: () => setHoveredImage(null, null) })
+    return null
+}
+
+// ── Search-driven fly-to ───────────────────────────────────────────────────────
+const SearchFlyHandler: React.FC = () => {
+    const map = useMap()
+    const { mapFlyToTarget, clearMapFlyTo } = useStore()
+    useEffect(() => {
+        if (!mapFlyToTarget) return
+        map.flyTo([mapFlyToTarget.lat, mapFlyToTarget.lon], mapFlyToTarget.zoom, {
+            animate: true,
+            duration: 1.2,
+            easeLinearity: 0.25,
+        })
+        clearMapFlyTo()
+    }, [mapFlyToTarget, map, clearMapFlyTo])
     return null
 }
 
@@ -415,8 +447,9 @@ const MapView: React.FC = () => {
         showPath,
         mapLayer,
         focusedSubFolder,
-
         infraVisibility,
+        searchPin,
+        setSearchPin,
     } = useStore()
 
     const tile = TILES[mapLayer]
@@ -514,6 +547,24 @@ const MapView: React.FC = () => {
                 <FocusSelected selected={selectedImage} />
                 <PendingCardHandler />
                 <CloseCardOnMapClick />
+                <SearchFlyHandler />
+
+                {/* ── Searched coordinate/place marker ── */}
+                {searchPin && (
+                    <Marker 
+                        position={[searchPin.lat, searchPin.lon]} 
+                        icon={createPulseIcon()}
+                        eventHandlers={{
+                            click: () => setSearchPin(null)
+                        }}
+                    >
+                        {searchPin.label && (
+                            <Popup autoPan={false}>
+                                <div style={{ fontSize: '12px', fontWeight: 600 }}>{searchPin.label}</div>
+                            </Popup>
+                        )}
+                    </Marker>
+                )}
 
                 {/* ── KML layers + fit-bounds handler ── */}
                 <KmlFitBoundsHandler />
@@ -662,16 +713,6 @@ const MapView: React.FC = () => {
                         })()}
                 </MarkerClusterGroup>
             </MapContainer>
-
-            {filteredImages.length === 0 && useStore.getState().kmlLayers.length === 0 && (
-                <div className="map-overlay">
-                    <div className="map-overlay-content">
-                        <div className="map-overlay-icon">🛸</div>
-                        <h3>No data loaded</h3>
-                        <p>Use <strong>Add Folder</strong> for drone images or <strong>Import KML</strong> to display KML files on the map</p>
-                    </div>
-                </div>
-            )}
         </div>
     )
 }

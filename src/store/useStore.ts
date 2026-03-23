@@ -78,6 +78,15 @@ interface AppState {
     }
     toggleInfraVisibility: (layer: keyof AppState['infraVisibility']) => void
 
+    // ── Map fly-to target (from search bar) ──────────────────────
+    mapFlyToTarget: { lat: number; lon: number; zoom: number; ts: number } | null
+    mapFlyTo: (target: { lat: number; lon: number; zoom: number }) => void
+    clearMapFlyTo: () => void
+
+    // ── Search coordinate pin ────────────────────────────────────
+    searchPin: { lat: number; lon: number; label?: string } | null
+    setSearchPin: (pin: { lat: number; lon: number; label?: string } | null) => void
+
     // Actions (images)
     addFolder: (folder: FolderData) => void
     removeFolder: (folderId: string) => void
@@ -151,6 +160,13 @@ export const useStore = create<AppState>((set, get) => ({
     toggleInfraVisibility: (layer) => set(s => ({
         infraVisibility: { ...s.infraVisibility, [layer]: !s.infraVisibility[layer] }
     })),
+
+    mapFlyToTarget: null,
+    mapFlyTo: (target) => set({ mapFlyToTarget: { ...target, ts: Date.now() } }),
+    clearMapFlyTo: () => set({ mapFlyToTarget: null }),
+
+    searchPin: null,
+    setSearchPin: (pin) => set({ searchPin: pin }),
 
     // ── Image folder actions ─────────────────────────────────────
     addFolder: (folder) => {
