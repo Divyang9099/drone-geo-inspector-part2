@@ -95,39 +95,61 @@ body {
 
 .sidebar-wrapper {
   width: var(--sidebar-width);
+  max-width: 30vw;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
   background: var(--bg-surface);
   border-right: 1px solid var(--border);
   overflow: hidden;
+  transition: width var(--transition);
 }
 
 .map-region {
   flex: 1;
   position: relative;
   overflow: hidden;
-  /* prevents map scroll from leaking to page */
   min-width: 0;
   min-height: 0;
+}
+
+/* Responsive Sidebar for smaller screens */
+@media (max-width: 1024px) {
+  .sidebar-wrapper {
+    width: 280px;
+    max-width: 40vw;
+  }
+}
+
+@media (max-width: 768px) {
+  .sidebar-wrapper {
+    width: 60px; /* Mini sidebar or hidden */
+  }
+  .sidebar-wrapper:hover {
+    width: 280px;
+    position: absolute;
+    z-index: 3000;
+    height: 100%;
+    box-shadow: 10px 0 30px rgba(0,0,0,0.5);
+  }
 }
 
 /* ============================================================
    TOPBAR
    ============================================================ */
 .topbar {
-  height: var(--topbar-height);
+  min-height: var(--topbar-height);
+  padding: 8px 20px;
   background: var(--bg-base);
   border-bottom: 1px solid var(--border);
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 20px;
-  padding: 0 24px;
+  justify-content: space-between;
+  gap: 12px;
   flex-shrink: 0;
   position: relative;
-  /* Must be above Leaflet map (which internally uses z-indexes up to ~1000) */
   z-index: 2000;
-  /* overflow visible so search dropdown can escape below the topbar */
   overflow: visible;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
 }
@@ -135,26 +157,60 @@ body {
 .topbar-left {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 12px;
   flex-shrink: 0;
 }
 
 .topbar-center {
   flex: 1;
+  min-width: 300px;
   display: flex;
   justify-content: center;
   align-items: center;
-  /* Allow dropdown child to overflow downward */
   overflow: visible;
   position: relative;
   z-index: 2001;
 }
 
-.topbar-right {
+.topbar-center-inner {
   display: flex;
   align-items: center;
   gap: 12px;
+  width: 100%;
+  max-width: 600px;
+}
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   flex-shrink: 0;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+@media (max-width: 1280px) {
+  .topbar-right .stat-chip:nth-child(n+4) {
+    display: none; /* Hide less critical stats on medium screens */
+  }
+}
+
+@media (max-width: 900px) {
+  .topbar {
+    justify-content: center;
+    padding-bottom: 12px;
+  }
+  .topbar-center {
+    order: 3;
+    width: 100%;
+    margin-top: 4px;
+  }
+  .topbar-left {
+    order: 1;
+  }
+  .topbar-right {
+    order: 2;
+  }
 }
 
 .action-row {
