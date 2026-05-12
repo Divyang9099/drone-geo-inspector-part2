@@ -628,7 +628,7 @@ const FileManager: React.FC = () => {
                         )}
                     </>
                 )}
-y
+
                 {/* ── KML tab ── */}
                 {hasAnything && activeTab === 'kml' && (
                     <>
