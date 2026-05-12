@@ -112,6 +112,10 @@ interface AppState {
     setFocusedSubFolder: (folderId: string, subPath: string | null) => void
     clearAll: () => void
 
+    // ── Metadata modal ───────────────────────────────────────────
+    showMetadataModal: boolean
+    setShowMetadataModal: (v: boolean) => void
+
     // Actions (KML)
     addKmlLayer: (layer: KmlLayer) => void
     removeKmlLayer: (layerId: string) => void
@@ -167,6 +171,9 @@ export const useStore = create<AppState>((set, get) => ({
 
     searchPin: null,
     setSearchPin: (pin) => set({ searchPin: pin }),
+
+    showMetadataModal: false,
+    setShowMetadataModal: (v) => set({ showMetadataModal: v }),
 
     // ── Image folder actions ─────────────────────────────────────
     addFolder: (folder) => {

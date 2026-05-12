@@ -13,4 +13,8 @@ export interface ImageData {
     objectUrl?: string
     /** Path segments inside the root folder, joined with '/'. e.g. 'subfolder/deeper' or '' for root */
     subFolderPath: string
+    /** DJI gimbal angles — undefined when not present in the image XMP */
+    gimbalPitch?: number
+    gimbalYaw?: number
+    gimbalRoll?: number
 }

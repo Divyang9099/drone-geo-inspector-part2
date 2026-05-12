@@ -31,6 +31,8 @@ const TopBar: React.FC = () => {
         addKmlLayer,
         setKmlLoading,
         clearAllKml,
+        // Metadata modal
+        setShowMetadataModal,
     } = useStore()
 
     const getNextFolderColor = useCallback(() => {
@@ -229,6 +231,18 @@ const TopBar: React.FC = () => {
                         {folders.length > 0 && (
                             <button className={`btn-ghost ${showPath ? 'active' : ''}`} onClick={togglePath}>
                                 {showPath ? '🛑 Hide Path' : '🗺 Path'}
+                            </button>
+                        )}
+                        {folders.length > 0 && (
+                            <button className="btn-extract" onClick={() => setShowMetadataModal(true)}>
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+                                    stroke="currentColor" strokeWidth="2.5"
+                                    strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                    <polyline points="7 10 12 15 17 10" />
+                                    <line x1="12" y1="15" x2="12" y2="3" />
+                                </svg>
+                                Extract Metadata
                             </button>
                         )}
                         {folders.length > 0 && (

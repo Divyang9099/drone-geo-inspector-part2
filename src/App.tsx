@@ -4,9 +4,13 @@ import FileManager from './components/FileManager'
 import MapView from './components/MapView'
 import HoverCard from './components/HoverCard'
 import ImageLightbox from './components/ImageLightbox'
+import MetadataModal from './components/MetadataModal'
+import { useStore } from './store/useStore'
 import './App.css'
 
 const App: React.FC = () => {
+  const showMetadataModal = useStore(s => s.showMetadataModal)
+
   return (
     <div className="app-shell">
       <TopBar />
@@ -25,6 +29,9 @@ const App: React.FC = () => {
 
       {/* Full-screen lightbox portal */}
       <ImageLightbox />
+
+      {/* Metadata export modal */}
+      {showMetadataModal && <MetadataModal />}
     </div>
   )
 }
