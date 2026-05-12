@@ -208,7 +208,7 @@ export const useStore = create<AppState>((set, get) => ({
         hoverTimer = setTimeout(() => {
             hoverTimer = null
             set({ hoveredImages: [], hoverPosition: null })
-        }, 200)   // 200ms — time to move from marker to card without flicker
+        }, 80)   // 80ms — closes quickly on mouseout, but keepHoverAlive cancels it if cursor reaches the card
     },
 
     keepHoverAlive: () => {

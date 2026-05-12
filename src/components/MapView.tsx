@@ -443,6 +443,8 @@ const MapView: React.FC = () => {
         setSelectedImage,
         setHoveredImages,
         scheduleHoverClear,
+        keepHoverAlive,
+        setHoveredImage,
         openLightbox,
         showPath,
         mapLayer,
@@ -511,6 +513,33 @@ const MapView: React.FC = () => {
         },
         [setHoveredImages, locationGroups]
     )
+
+    // Global mouse tracking: Ensure the card closes if we aren't over a marker or the card.
+    // This is much more reliable than individual marker mouseout events.
+    useEffect(() => {
+        const handleGlobalMouseMove = (e: MouseEvent) => {
+            const target = e.target as HTMLElement
+            const isMarker = !!target.closest('.leaflet-marker-icon') || !!target.closest('.search-pulse-icon')
+            const isCard = !!target.closest('.hover-card')
+
+            if (isMarker || isCard) {
+                // Keep the card alive while we are over it or the node
+                keepHoverAlive()
+            } else {
+                // Otherwise, start the countdown to close it
+                scheduleHoverClear()
+            }
+        }
+
+        window.addEventListener('mousemove', handleGlobalMouseMove)
+        // Close immediately if cursor leaves the browser window
+        window.addEventListener('mouseleave', () => setHoveredImage(null, null))
+
+        return () => {
+            window.removeEventListener('mousemove', handleGlobalMouseMove)
+            window.removeEventListener('mouseleave', () => setHoveredImage(null, null))
+        }
+    }, [keepHoverAlive, scheduleHoverClear, setHoveredImage])
 
     return (
         <div className={`map-wrapper${pulseHighlight ? ' folder-just-focused' : ''}`}>
@@ -655,7 +684,7 @@ const MapView: React.FC = () => {
                                             },
                                             click: () => handleMarkerClick(repr),
                                             mouseover: (e) => handleMarkerHover(repr, e as unknown as L.LeafletMouseEvent),
-                                            mouseout: () => scheduleHoverClear(),
+                                            // Global listener handles mouseout now for maximum reliability
                                         }}
                                     >
                                         <Popup className="custom-popup" maxWidth={260}>
