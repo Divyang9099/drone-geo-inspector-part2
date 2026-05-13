@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import { useStore } from '../store/useStore'
-import { loadGoogleMaps } from '../utils/googleMapsLoader'
+import { textSearch } from '../utils/googleTextSearch'
 
 const GOOGLE_KEY = import.meta.env.VITE_GOOGLE_MAPS_KEY as string | undefined
 
@@ -28,57 +28,6 @@ function parseCoordinates(input: string): { lat: number; lon: number } | null {
             return { lat, lon }
     }
     return null
-}
-
-// ── Google Places Autocomplete ────────────────────────────────────────────────
-async function googleAutocomplete(query: string, signal: AbortSignal): Promise<Suggestion[]> {
-    if (!GOOGLE_KEY) return []
-    await loadGoogleMaps(GOOGLE_KEY)
-    if (signal.aborted) return []
-
-    const svc = new google.maps.places.AutocompleteService()
-    return new Promise(resolve => {
-        svc.getPlacePredictions(
-            { input: query },
-            (preds: google.maps.places.AutocompletePrediction[] | null,
-             status: google.maps.places.PlacesServiceStatus) => {
-                if (
-                    status !== google.maps.places.PlacesServiceStatus.OK ||
-                    !preds
-                ) { resolve([]); return }
-
-                resolve(preds.map((p, i) => ({
-                    id: `g-${p.place_id}-${i}`,
-                    placeId: p.place_id,
-                    primaryName: p.structured_formatting.main_text,
-                    context: p.structured_formatting.secondary_text || '',
-                    types: p.types || [],
-                    source: 'google' as const,
-                })))
-            }
-        )
-    })
-}
-
-// ── Resolve Google place_id → lat/lon via Geocoder ───────────────────────────
-async function resolveGoogleLatLon(
-    placeId: string
-): Promise<{ lat: number; lon: number; viewport?: google.maps.LatLngBounds } | null> {
-    if (!GOOGLE_KEY) return null
-    await loadGoogleMaps(GOOGLE_KEY)
-
-    const geo = new google.maps.Geocoder()
-    return new Promise(resolve => {
-        geo.geocode({ placeId }, (results, status) => {
-            if (status !== 'OK' || !results?.length) { resolve(null); return }
-            const loc = results[0].geometry.location
-            resolve({
-                lat: loc.lat(),
-                lon: loc.lng(),
-                viewport: results[0].geometry.viewport,
-            })
-        })
-    })
 }
 
 // ── OSM Photon fallback (no API key, global) ──────────────────────────────────
@@ -223,11 +172,6 @@ const MapSearchBar: React.FC = () => {
         }
     }, [isOpen, computeDropPos])
 
-    // Pre-warm the Google Maps API on first mount so it's ready when user types
-    useEffect(() => {
-        if (GOOGLE_KEY) loadGoogleMaps(GOOGLE_KEY).catch(() => { /* ignore */ })
-    }, [])
-
     // ── Fetch suggestions ─────────────────────────────────────────────────────
     const fetchSuggestions = useCallback(async (text: string) => {
         const t = text.trim()
@@ -255,8 +199,8 @@ const MapSearchBar: React.FC = () => {
             let results: Suggestion[]
 
             if (GOOGLE_KEY) {
-                // Google Places — comprehensive, includes all businesses/POIs
-                results = await googleAutocomplete(t, signal)
+                // Google Places Text Search
+                results = await textSearch(t, signal)
 
                 // If Google returns nothing, silently try OSM
                 if (results.length === 0 && !signal.aborted) {
@@ -296,16 +240,7 @@ const MapSearchBar: React.FC = () => {
         setQuery(s.primaryName)
         inputRef.current?.blur()
 
-        let lat = s.lat, lon = s.lon
-
-        if ((lat == null || lon == null) && s.placeId) {
-            // Google result — resolve coordinates now
-            setLoading(true)
-            const resolved = await resolveGoogleLatLon(s.placeId).catch(() => null)
-            setLoading(false)
-            if (!resolved) return
-            lat = resolved.lat; lon = resolved.lon
-        }
+        const { lat, lon } = s
 
         if (lat == null || lon == null) return
 
