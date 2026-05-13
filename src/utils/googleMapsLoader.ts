@@ -1,24 +1,21 @@
-// Loads the Google Maps JavaScript API (with Places library) exactly once.
-// All callers share the same Promise so the script is injected only once
-// regardless of how many components call this concurrently.
-
 let _promise: Promise<void> | null = null
 
 export function loadGoogleMaps(apiKey: string): Promise<void> {
     if (_promise) return _promise
 
     // Already available (e.g. hot-reload)
-    if (typeof window !== 'undefined' && window.google?.maps?.places) {
+    if (typeof window !== 'undefined' && (window as unknown as Record<string, unknown>)['google']) {
         _promise = Promise.resolve()
         return _promise
     }
 
     _promise = new Promise<void>((resolve, reject) => {
         const callbackName = '__googleMapsReady'
+        const w = window as unknown as Record<string, unknown>
 
-        ;(window as Window & { [k: string]: unknown })[callbackName] = () => {
+        w[callbackName] = () => {
             resolve()
-            delete (window as Window & { [k: string]: unknown })[callbackName]
+            delete w[callbackName]
         }
 
         const script = document.createElement('script')
@@ -31,7 +28,7 @@ export function loadGoogleMaps(apiKey: string): Promise<void> {
         script.async = true
         script.defer = true
         script.onerror = () => {
-            _promise = null  // allow retry
+            _promise = null
             reject(new Error('Google Maps JS API failed to load'))
         }
         document.head.appendChild(script)
